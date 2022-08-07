@@ -1,0 +1,58 @@
+#!/bin/bash
+
+SELF=$(basename $0)
+if [ $# -ne 1 ]
+then
+    echo "Not enough args"
+    echo "    $SELF output_directory"
+    exit 1
+fi
+
+DIFF=$1
+FIRST=before
+SECOND=after
+
+#DIR=$(date '+%Y-%m-%d_%H-%M-%S')
+
+for DIR in $FIRST $SECOND
+do
+  if ! [ -d $DIR ]
+  then
+      echo Cannot find $DIR
+      exit 2
+  fi
+done
+
+
+for FILE in $(ls -1 $FIRST)
+do
+    if [ -e $SECOND/$FILE ]
+    then
+        if ! diff $FIRST/$FILE $SECOND/$FILE > /dev/null 2>&1
+        then
+            [ -d $DIFF/$FIRST ] || mkdir -p $DIFF/$FIRST 
+            [ -d $DIFF/$SECOND ] || mkdir -p $DIFF/$SECOND 
+            cp $FIRST/$FILE $DIFF/$FIRST
+            cp $SECOND/$FILE $DIFF/$SECOND
+        fi
+    else
+        [ -d $DIFF/$FIRST ] || mkdir -p $DIFF/$FIRST
+        cp $FIRST/$FILE $DIFF/$FIRST
+    fi
+done
+
+for FILE in $(ls -1 $SECOND)
+do
+    if ! [ -e $FIRST/$FILE ]
+    then
+        [ -d $DIFF/$SECOND ] || mkdir -p $DIFF/$SECOND 
+        cp $SECOND/$FILE $DIFF/$SECOND
+    fi
+done
+tar zcvf $DIFF/${FIRST}.tgz $FIRST
+tar zcvf $DIFF/${SECOND}.tgz $SECOND
+
+rm -r $FIRST
+mv $SECOND $FIRST
+
+tree $DIFF

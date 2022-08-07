@@ -1,0 +1,5 @@
+FILE=/tmp/$1
+
+touch $FILE
+ln -s $FILE
+rm $FILE

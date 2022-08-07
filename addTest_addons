@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+CLIENT=$1
+
+#-----------------------------------------
+if [ $# -ne 1 ]
+then
+	echo Not enough args
+	exit 1
+fi
+
+#-----------------------------------------
+PATH=/opt/odoo-multi/bin:$PATH
+. config.sh
+
+if ! [ -d $WORK ]
+then 
+    echo "Cannot find $WORK"
+    exit 1
+fi
+TEST_ADDONS=/opt/odoo-multi/tpa/testing
+
+for DIR in $(ls -1 $TEST_ADDONS)
+do
+    if ! [ -e $CLIENT_ADDONS/$DIR ]
+    then
+        ln -s $TEST_ADDONS/$DIR $CLIENT_ADDONS/$DIR
+    fi
+done

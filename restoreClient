@@ -1,0 +1,56 @@
+#!/bin/bash
+
+CLIENT=$1
+
+if ! [ -d /var/cydbackup/$CLIENT ]
+then
+    echo "Cannot find $CLIENT"
+    exit 1
+fi
+
+check_ret() {
+
+   if [ $1 -ne 0 ]
+   then
+       echo ERROR $CLIENT
+       exit 1
+   fi
+
+}
+
+
+# Stop the database
+#if [ -e /etc/systemd/system/multi-user.target.wants/odoo_${CLIENT}.service
+#then
+   sudo systemctl stop odoo_$CLIENT
+   check_ret $?
+#fi
+
+# find the last backup
+TAR=$(ls -1tr /var/cydbackup/$CLIENT/$CLIENT*.tgz | tail -1)
+TGZ=$(basename $TAR)
+echo $TAR $TGZ
+
+# Copy backup to /tmp
+[ -e /tmp/$CLIENT ] ||  mkdir /tmp/$CLIENT
+cp $TAR /tmp/$CLIENT/
+cd /tmp/$CLIENT/
+
+# extract the tar
+tar zxvf $TGZ
+
+# recreate a fresh db.
+dropdb $CLIENT 
+check_ret $?
+createdb $CLIENT 
+check_ret $?
+
+# restore previous db
+psql $CLIENT < opt/odoo-multi/clients/$CLIENT/$CLIENT.sql
+
+# refresh client files
+[ -d /opt/odoo-multi/clients/$CLIENT ] || mkdir /opt/odoo-multi/clients/$CLIENT
+rsync -a opt/odoo-multi/clients/$CLIENT/ /opt/odoo-multi/clients/$CLIENT/ --delete
+
+# restart the db.
+sudo systemctl start odoo_$CLIENT

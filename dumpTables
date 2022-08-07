@@ -1,0 +1,47 @@
+#!/bin/bash
+
+SELF=$(basename $0)
+if [ $# -ne 1 ]
+then
+    echo "Enter a database name"
+    echo "    $SELF database"
+    exit 1
+fi
+
+DB=$1
+
+if [ -d before ]
+then
+    if [ -d after ]
+    then
+        echo \"after\" directory already exists.
+        exit 1
+    else
+       DIR=after
+    fi
+else
+  DIR=before
+fi
+
+mkdir $DIR
+
+IFS="
+"
+
+for T in $(psql -d $DB -c "\dt" | grep table)
+do
+    TABLE=$(echo $T | gawk '{print $3}')
+    echo $TABLE
+    [ $TABLE == "bus_presence" ] && continue
+    [ $TABLE == "ir_cron" ] && continue
+    [ $TABLE == "mail_mail" ] && continue
+    [ $TABLE == "mail_message" ] && continue
+    [ $TABLE == "mail_tracking_value" ] && continue
+    [ $TABLE == "mail_followers_mail_message_subtype_rel" ] && continue
+    [ $TABLE == "mail_followers" ] && continue
+    #[ $TABLE == "" ] && continue
+
+
+    pg_dump -d $DB -t $TABLE > $DIR/${TABLE}.sql
+
+done

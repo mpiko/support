@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+
+    
+[ -d diff ] || mkdir diff
+    
+for FILE in $(ls -1 after)
+do
+    diff {before,after}/$FILE | grep '^[<>]' | sed 's/^>/AFTER: /' | sed 's/^</BEFORE: /' > diff/${FILE}.txt
+done

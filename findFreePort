@@ -1,0 +1,22 @@
+#!/bin/bash
+
+STARTPORT=8050
+
+usedPort() {
+    PORT=$1
+    for CONF in $(find /opt/odoo-multi/clients -name '*.conf')
+    do
+        if grep "http_port = $PORT" $CONF >/dev/null
+        then
+            return 0
+        fi
+    done
+    return 1
+}
+
+while usedPort $STARTPORT
+do
+    ((STARTPORT++))
+    ((STARTPORT++))
+done
+echo $STARTPORT
