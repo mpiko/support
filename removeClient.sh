@@ -17,6 +17,13 @@ then
     exit 1
 fi
 
+for OPT in $@
+do
+    if [ $OPT = "-y" ]
+    then
+        RESP=Y
+    fi
+done
 
 while [ -z "$RESP" ]
 do
