@@ -4,9 +4,23 @@ CLIENT=$1
 
 #-----------------------------------------
 #
-DOMAIN=wombat.local
-CYDUSER=michael
-CYDGROUP=michael
+ME=$(hostname)
+
+if [ $ME = "ocean" ]
+then
+    DOMAIN=wombat.local
+    CYDUSER=michael
+    SSL=no
+elif [ $ME = "Common" ]
+then
+    DOMAIN=cyder.com.au
+    CYDGROUP=support
+    SSL=yes
+else
+    echo "not sure where I am"
+    exit 1
+fi
+
 
 #-----------------------------------------
 #
