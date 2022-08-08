@@ -10,11 +10,13 @@ if [ $ME = "ocean" ]
 then
     DOMAIN=wombat.local
     CYDUSER=michael
+    CYDGROUP=michael
     SSL=no
 elif [ $ME = "Common" ]
 then
     DOMAIN=cyder.com.au
     CYDGROUP=support
+    CYDUSER=support
     SSL=yes
 else
     echo "not sure where I am"
