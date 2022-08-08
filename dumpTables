@@ -37,7 +37,6 @@ else
     TABLES=$(psql vans -qc "\dt;" | cut -f2 -d\| | grep -v "\([0-9]\+\) rows")
 fi
 
-exit
 for TABLE in $TABLES
 do
     echo $TABLE
