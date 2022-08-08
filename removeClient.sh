@@ -48,6 +48,10 @@ then
     exit 3
 fi
 sudo systemctl disable odoo_${CLIENT} > /dev/null
+if [ -e /lib/systemd/system/odoo_${CLIENT}.service ]
+then
+    sudo rm /lib/systemd/system/odoo_${CLIENT}.service
+fi
 sudo systemctl daemon-reload > /dev/null
 sudo systemctl reset-failed > /dev/null
 
