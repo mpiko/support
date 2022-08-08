@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -ne 1 ] 
+if [ $# -lt 1 ] 
 then
     echo Not enough args
     exit 1
