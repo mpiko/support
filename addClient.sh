@@ -21,11 +21,16 @@ PATH=/opt/odoo-multi/bin:$PATH
 . functions.sh
 
 ENTERPRISE=""
+DEMO="--without-demo=all"
 for OPT in $@
 do
     if [ $OPT = "-e" ]
     then
         ENTERPRISE=",./odoo/enterprise"
+    elif [ $OPT = "-d" ]
+    then
+        DEMO=""
+        DEMODATA=True
     fi
 done
 ADDONS="$CLIENT_ADDONS,./odoo/addons$ENTERPRISE" 
@@ -54,6 +59,7 @@ DOMAIN=$DOMAIN
 LANG=$LANG
 MASTER=$MASTER
 WORK=$MASTER/$CLIENT
+DEMODATA=$DEMODATA
 CONF=${CLIENT}.conf
 ADDONS=$ADDONS
 MODULES=$MODULES
@@ -84,7 +90,7 @@ mkdir -p $DATA
 #-----------------------------------------
 #build the database and config
 echo "Building Odoo database"
-./env15/bin/odoo -d $CLIENT -c $WORK/$CONF --addons-path="$ADDONS" -i $MODULES --without-demo=all -p $PORT --logfile=$WORK/log/${CLIENT}.log --longpolling-port=$LPORT -D $DATA --db-filter=$CLIENT --load-language=$LANG --http-interface=localhost --save --stop
+./env15/bin/odoo -d $CLIENT -c $WORK/$CONF --addons-path="$ADDONS" -i $MODULES $DEMO -p $PORT --logfile=$WORK/log/${CLIENT}.log --longpolling-port=$LPORT -D $DATA --db-filter=$CLIENT --load-language=$LANG --http-interface=localhost --save --stop
 
 sed -i.bak 's/admin_passwd = admin/admin_passwd = $pbkdf2-sha512$25000$01oLwTiHsDbmHCOE0Lo3xg$qvVi3bgjunp5MINYkGe1PdoC9nMzwrlgDCwvt4RerPGN6PtXSQHSeiDhiRiFxBk4kjZwPiOYK6Lh2xGwBRQCxg/' $WORK/$CONF 
 
