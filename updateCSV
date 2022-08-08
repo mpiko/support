@@ -1,0 +1,64 @@
+#!/bin/bash
+
+SELF=$(basename $0)
+if [ $# -ne 1 ]
+then
+    echo "Not enough args"
+    echo "    $SELF action"
+    echo "    IE: $SELF new-draft"
+    exit 1
+fi
+
+ACTION=$1
+FIRST=before
+SECOND=after
+OUTDIR=csv
+
+#DIR=$(date '+%Y-%m-%d_%H-%M-%S')
+
+for DIR in $FIRST $SECOND
+do
+  if ! [ -d $DIR ]
+  then
+      echo Cannot find $DIR
+      exit 2
+  fi
+done
+
+MODIFIED=None
+for FILE in $(ls -1 $FIRST)
+do
+    if [ -e $SECOND/$FILE ]
+    then
+        if ! diff $FIRST/$FILE $SECOND/$FILE > /dev/null 2>&1
+        then
+            NAME=$(basename $FILE .sql)
+            if [ "$MODIFIED" = "None" ]
+            then
+                MODIFIED="$NAME"
+            else
+                MODIFIED="$MODIFIED,$NAME" 
+            fi
+
+            [ -d $OUTDIR ] || mkdir -p $OUTDIR
+
+            # get the headers if the csv does not already exist.
+            if [ ! -f $OUTDIR/${NAME}.csv ]
+            then
+                HEADERS=$(grep "COPY" ${SECOND}/$FILE | sed "s/COPY public.$NAME (//" | sed "s/) FROM stdin;//")
+                echo "Action, $HEADERS" > $OUTDIR/${NAME}.csv
+            fi
+            # get the diff of the two files and format the output to add an action to each modified line.
+            diff {$FIRST,$SECOND}/$FILE | grep -v "SELECT" | grep '^>' | sed "s/^>/${ACTION}\t /" >> $OUTDIR/${NAME}.csv
+        fi
+    fi
+done
+
+echo "Action = $ACTION Tables changed: $MODIFIED"
+if ! [ "$MODIFIED" == "None" ]
+then
+    echo "Action = $ACTION, Tables changed:, $MODIFIED" >> $OUTDIR/tablechanges.txt
+fi
+
+rm -r before
+mv after before

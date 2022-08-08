@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# sudo apt-get install --no-install-recommends gnumeric
+
+cd csv
+
+for F in $(ls -1vr *.csv)
+do
+    cp $F ${F}.tmp
+    cat ${F}.tmp | sed 's/\t/,/g' > $F
+    rm ${F}.tmp
+done
+
+ssconvert --merge-to ../tablechanges.xls tablechanges.txt *.csv
