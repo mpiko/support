@@ -22,6 +22,7 @@ PATH=/opt/odoo-multi/bin:$PATH
 
 ENTERPRISE=""
 DEMO="--without-demo=all"
+DEMODATA=False
 for OPT in $@
 do
     if [ $OPT = "-e" ]
