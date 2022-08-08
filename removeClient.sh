@@ -10,20 +10,6 @@ fi
 PATH=/opt/odoo-multi/bin:$PATH
 . config.sh
 unset LANG
-#CLIENT=$1
-#DOMAIN=cyder.com.au
-#CYDUSER=support
-#CYDGROUP=support
-#LANG=en_AU
-#MASTER=/opt/odoo-multi
-#CLIENTS=$MASTER/clients/
-#WORK=$CLIENTS/$CLIENT
-#DATA=$WORK/data
-#APPROVED_ADDONS=$MASTER/tpa/approved
-#CONF=${CLIENT}.conf
-#CLIENT_ADDONS=$WORK/${CLIENT}_addons
-#MODULES="l10n_au,contacts,sale_management,mrp,stock,purchase,crm,project,fleet"
-#PORTFILE=$MASTER/.port
 
 if ! [ -d $WORK ]
 then
@@ -61,7 +47,10 @@ sudo systemctl reset-failed > /dev/null
 dropdb $CLIENT
 if [ $? -eq 0 ]
 then
-    #sudo certbot delete --cert-name ${CLIENT}.$DOMAIN
+    if grep ssl_certificate_key /etc/nginx/sites-available/${CLIENT}.conf  > /dev/null
+    then
+        sudo certbot delete --cert-name ${CLIENT}.$DOMAIN
+    fi
     sudo rm -rf $WORK
     sudo rm /etc/nginx/sites-{enabled,available}/${CLIENT}.conf
     sudo systemctl reload nginx
