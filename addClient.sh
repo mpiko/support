@@ -9,7 +9,7 @@
 #   common.cyder.com.au exists
 # 
 #-----------------------------------------
-if [ $# -ne 1 ]
+if [ $# -lt 1 ]
 then
 	echo Not enough args
 	exit 1
@@ -20,20 +20,16 @@ PATH=/opt/odoo-multi/bin:$PATH
 . config.sh
 . functions.sh
 
-#CLIENT=$1
-#DOMAIN=cyder.com.au
-#CYDUSER=support
-#CYDGROUP=support
-#LANG=en_AU
-#MASTER=/opt/odoo-multi
-#APPROVED_ADDONS=$MASTER/addons/approved
-#WORK=$MASTER/clients/$CLIENT
-#DATA=$WORK/data
-#CONF=${CLIENT}.conf
-#CLIENT_ADDONS=$WORK/${CLIENT}_addons
-##MODULES="contacts,sale_management,mrp,stock,purchase,crm,project,repair,maintenance,survey,hr_attendance,hr,fleet,calendar,note"
-#MODULES="l10n_au,contacts,sale_management,mrp,stock,purchase,crm,project,fleet"
-#PORTFILE=$MASTER/.port
+ENTERPRISE=""
+for OPT in $@
+do
+    if [ $OPT = "-e" ]
+    then
+        ENTERPRISE=",./odoo/enterprise"
+    fi
+done
+ADDONS="$CLIENT_ADDONS,./odoo/addons$ENTERPRISE" 
+
 MODULES="l10n_au,contacts"
 
 #-----------------------------------------
@@ -47,15 +43,6 @@ fi
 cd $MASTER
 
 # look for an availiable port
-#if [ -e $PORTFILE ]
-#then
-#    PORT=$(head -1 $PORTFILE)
-#    ((PORT++))
-#else
-#    PORT=8050
-#fi
-#LPORT=$(($PORT + 1))
-#echo $LPORT > $PORTFILE
 PORT=$(findFreePort)
 LPORT=$(($PORT + 1))
 
@@ -68,9 +55,8 @@ LANG=$LANG
 MASTER=$MASTER
 WORK=$MASTER/$CLIENT
 CONF=${CLIENT}.conf
-CLIENT_ADDONS=$WORK/${CLIENT}_addons
+ADDONS=$ADDONS
 MODULES=$MODULES
-PORTFILE=$MASTER/.port
 PORT=$PORT
 lONGPOLLINGPORT=$LPORT
 "
@@ -98,7 +84,7 @@ mkdir -p $DATA
 #-----------------------------------------
 #build the database and config
 echo "Building Odoo database"
-./env15/bin/odoo -d $CLIENT -c $WORK/$CONF --addons-path="$CLIENT_ADDONS,./odoo/addons" -i $MODULES --without-demo=all -p $PORT --logfile=$WORK/log/${CLIENT}.log --longpolling-port=$LPORT -D $DATA --db-filter=$CLIENT --load-language=$LANG --http-interface=localhost --save --stop
+./env15/bin/odoo -d $CLIENT -c $WORK/$CONF --addons-path="$ADDONS" -i $MODULES --without-demo=all -p $PORT --logfile=$WORK/log/${CLIENT}.log --longpolling-port=$LPORT -D $DATA --db-filter=$CLIENT --load-language=$LANG --http-interface=localhost --save --stop
 
 sed -i.bak 's/admin_passwd = admin/admin_passwd = $pbkdf2-sha512$25000$01oLwTiHsDbmHCOE0Lo3xg$qvVi3bgjunp5MINYkGe1PdoC9nMzwrlgDCwvt4RerPGN6PtXSQHSeiDhiRiFxBk4kjZwPiOYK6Lh2xGwBRQCxg/' $WORK/$CONF 
 
@@ -168,7 +154,11 @@ sudo systemctl start odoo_${CLIENT}.service
 #-----------------------------------------
 
 # Set up ssl
-#sudo certbot --nginx -d ${CLIENT}.${DOMAIN} --non-interactive --agree-tos --redirect -m ${CYDUSER}\@${DOMAIN}
+if [ $SSL = "yes" ]
+then
+    sudo certbot --nginx -d ${CLIENT}.${DOMAIN} --non-interactive --agree-tos --redirect -m ${CYDUSER}\@${DOMAIN}
+fi
+
 #-----------------------------------------
 write_scripts
 display_footer
