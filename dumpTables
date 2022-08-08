@@ -1,10 +1,12 @@
 #!/bin/bash
 
 SELF=$(basename $0)
+
 if [ $# -ne 1 ]
 then
-    echo "Enter a database name"
+    echo "Not enough args"
     echo "    $SELF database"
+    echo "    IE: $SELF build"
     exit 1
 fi
 
@@ -14,11 +16,10 @@ if [ -d before ]
 then
     if [ -d after ]
     then
-        echo \"after\" directory already exists.
-        exit 1
-    else
-       DIR=after
+        rm -r before
+        mv after before
     fi
+    DIR=after
 else
   DIR=before
 fi
@@ -27,21 +28,18 @@ mkdir $DIR
 
 IFS="
 "
+if [ -e ~/scripts/tablelist.txt ]
+then
+    echo file
+    TABLES=$(cat ~/scripts/tablelist.txt)
+else
+    echo database
+    TABLES=$(psql vans -qc "\dt;" | cut -f2 -d\| | grep -v "\([0-9]\+\) rows")
+fi
 
-for T in $(psql -d $DB -c "\dt" | grep table)
+exit
+for TABLE in $TABLES
 do
-    TABLE=$(echo $T | gawk '{print $3}')
     echo $TABLE
-    [ $TABLE == "bus_presence" ] && continue
-    [ $TABLE == "ir_cron" ] && continue
-    [ $TABLE == "mail_mail" ] && continue
-    [ $TABLE == "mail_message" ] && continue
-    [ $TABLE == "mail_tracking_value" ] && continue
-    [ $TABLE == "mail_followers_mail_message_subtype_rel" ] && continue
-    [ $TABLE == "mail_followers" ] && continue
-    #[ $TABLE == "" ] && continue
-
-
     pg_dump -d $DB -t $TABLE > $DIR/${TABLE}.sql
-
 done
