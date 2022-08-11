@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+VERS="15.0 master"
+TYPES="odoo enterprise"
+
+WD=/opt/odoosrc
+
+cd $WD
+
+for VER in $VERS
+do
+    for TYPE in $TYPES
+    do  
+       if [ -d $WD/$VER/$TYPE ]
+       then
+           echo $WD/$VER/$TYPE
+           cd $WD/$VER/$TYPE
+           echo git pull
+           git pull
+       fi
+   done
+done
+
